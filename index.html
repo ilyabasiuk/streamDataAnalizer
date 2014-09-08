@@ -21,7 +21,12 @@ body {
   fill: none;
   stroke: steelblue;
 }
-
+.dn {
+  display: none;
+}
+svg {
+  float: left;
+}
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.js"></script>
@@ -186,41 +191,78 @@ svg.append("g")
       .attr("stroke-width", function(d)  { if (d.name[0] !== "b" && d.name !== "count" )  return 3; else return 1;});
 
 
-var pointsData = [] ;
-    vehicles.forEach(function(vehicle) {
-          pointsData  = pointsData.concat(vehicle.values);
+// var pointsData = [] ;
+//     vehicles.forEach(function(vehicle) {
+//           pointsData  = pointsData.concat(vehicle.values);
+//     });
+// var points = svg.selectAll(".point")
+//          .data(pointsData)
+//          .enter()
+//          //.attr("class", "point")44
+//          .append("svg:circle")
+//          .attr("clip-path", "url(#clip)")
+//          .attr("stroke", "black")
+//          .attr("fill", function(d) { return "black" })
+//          .attr("cx", function(d) { return x(d.date) })
+//          .attr("cy", function(d) {  return y(d.delayTime)})
+//          .attr("r", 0.5);
+
+var points = svg.selectAll('.dots')
+  .data(vehicles)
+  .enter()
+  .append("g")
+  .attr("class", "dots")
+  .attr("clip-path", "url(#clip)");
+
+  points.selectAll('.dot')
+  .data(function (d) {
+    var a = [];
+    d.values.forEach(function(point,i){
+      a.push({'index': d.name, 'point': point});
     });
-var points = svg.selectAll(".point")
-         .data(pointsData)
-         .enter()
-         //.attr("class", "point")44
-         .append("svg:circle")
-         .attr("clip-path", "url(#clip)")
-         .attr("stroke", "black")
-         .attr("fill", function(d) { return "black" })
-         .attr("cx", function(d) { return x(d.date) })
-         .attr("cy", function(d) {  return y(d.delayTime)})
-         .attr("r", 0.5);
+    return a;
+  })
+  .enter()
+  .append('circle')
+  .attr('class','dot')
+  .attr("r", 2.5)
+  .attr("fill", function(d) { return color(d.index); })
+  .attr("cx", function(d) { return x(d.point.date) })
+  .attr("cy", function(d) {  return y(d.point.delayTime)})
+
+
 
 var legendDiv = d3.select("body").append("div").attr("class", "legend");
   var p =  legendDiv.selectAll(".asd").data(color.domain())
              .enter()
-              .append("p")
+             .append("p")
              .text(function(d) {return d;});
 
-      p.append("span").html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").style("background-color", function(d) {return color(d)});    
+
+    var spans =  p.append("span").html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").style("background-color", function(d) {return color(d)});
+    var checkboxes =  spans.insert("input").attr("type", "checkbox").attr("checked", true).on("click", function(d){
+            var line =     svg.selectAll('path.line').filter(function(c) { return c.name === d}),
+                pointGroup = points.filter(function(c) { return c.name === d});
+
+            if (this.checked) {
+                line.classed("dn", false);
+                pointGroup.classed("dn", false);
+            } else {
+                line.classed("dn", true);
+                pointGroup.classed("dn", true);
+            }
+        });
+;
 //************************************************************
 // Zoom specific updates
 //************************************************************
 function zoomed() {
-  //debugger;
 	svg.select(".x.axis").call(xAxis);
 	svg.select(".y.axis").call(yAxis);
 	svg.selectAll('path.line').attr("d", function(d) { return line(d.values); })
-
-	 points.attr("cx", function(d) { return x(d.date) })
-   .attr("cy", function(d) {  return y(d.delayTime)})
-
+  points.selectAll("circle").attr("cx", function(d) { return x(d.point.date) })
+  .attr("cy", function(d) {  return y(d.point.delayTime)});
 }
+
 
 </script>

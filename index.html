@@ -21,10 +21,7 @@ body {
   fill: none;
   stroke: steelblue;
 }
-.legend rect {
-  fill:white;
-  stroke:black;
-  opavehicle:0.8;}
+
 </style>
 <body>
 <script src="http://d3js.org/d3.v3.js"></script>
@@ -176,12 +173,6 @@ svg.append("g")
       .attr("height", height);
 
 
-
-
-
-
-
-
   var vehicle = svg.selectAll(".vehicle")
       .data(vehicles)
       .enter().append("g")
@@ -211,26 +202,13 @@ var points = svg.selectAll(".point")
          .attr("cy", function(d) {  return y(d.delayTime)})
          .attr("r", 0.5);
 
+var legendDiv = d3.select("body").append("div").attr("class", "legend");
+  var p =  legendDiv.selectAll(".asd").data(color.domain())
+             .enter()
+              .append("p")
+             .text(function(d) {return d;});
 
-  // vehicle.append("text")
-  //     .datum(function(d) { return {name: d.name, value: d.values[d.values.length - 1]}; })
-  //     .attr("transform", function(d) { return "translate(" + x(d.value.date) + "," + y(d.value.delayTime) + ")"; })
-  //     .attr("x", 3)
-  //     .attr("dy", ".35em")
-  //     .text(function(d) { return d.name; });
-  //
-  // legend = svg.append("g")
-  //   .attr("class","legend")
-  //   .attr("transform","translate(50,30)")
-  //   .style("font-size","12px")
-  //   .call(d3.legend);
-  //
-  // setTimeout(function() {
-  //   legend
-  //     .style("font-size","20px")
-  //     .attr("data-style-padding",10)
-  //     .call(d3.legend)
-  // },1000)
+      p.append("span").html("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;").style("background-color", function(d) {return color(d)});    
 //************************************************************
 // Zoom specific updates
 //************************************************************

@@ -63,7 +63,7 @@ var data = [{"bAE7":22.791,"timeStamp":1409056110276},{"bAE7":3.201,"timeStamp":
       var timestamp = logs.timeStamp,
       countLogs = 0;
       Object.keys(logs).filter(function(key) {
-        return key !== "timeStamp";
+        return key !== "timeStamp" && key !== "date";
       }).forEach(function (key) {
           var delayTime = logs[key];
           countLogs++;
@@ -73,10 +73,12 @@ var data = [{"bAE7":22.791,"timeStamp":1409056110276},{"bAE7":3.201,"timeStamp":
 
       logs.count = countLogs;
       logs.avg  = analyzer.get(timestamp);
+      logs.median = analyzer.getMed(timestamp);
+
   //    console.log(countLogs + "  " +   temp.getHours() + ":" + temp.getMinutes() + ":" +  temp.getSeconds(), logs.avg );
   });
-
-  vehicleIds.push("avg","count");
+  debugger;
+  vehicleIds.push("avg","median", "count");
 
 var color = d3.scale.category10();
 color.domain(vehicleIds);
@@ -100,7 +102,7 @@ var parseDate = d3.time.format("%Y%m%d").parse;
 // Create Margins and Axis and hook our zoom function
 //************************************************************
 var margin = {top: 20, right: 80, bottom: 30, left: 50},
-    width = 960 - margin.left - margin.right,
+    width = 1600 - margin.left - margin.right,
     height = 500 - margin.top - margin.bottom;
 
 var x = d3.time.scale()
@@ -117,7 +119,7 @@ x.domain(d3.extent(data, function(d) { return d.date;}));
 
 y.domain([
   d3.min(vehicles, function(c) { return    d3.min(c.values, function(v) { return v.delayTime; }); }),
-  d3.max(vehicles, function(c) { return d3.max(c.values, function(v) { return v.delayTime; }) -40; })
+  d3.max(vehicles, function(c) { return d3.max(c.values, function(v) { return v.delayTime; }) ; })
 ]);
 var xAxis = d3.svg.axis()
     .scale(x)
@@ -191,21 +193,6 @@ svg.append("g")
       .attr("stroke-width", function(d)  { if (d.name[0] !== "b" && d.name !== "count" )  return 3; else return 1;});
 
 
-// var pointsData = [] ;
-//     vehicles.forEach(function(vehicle) {
-//           pointsData  = pointsData.concat(vehicle.values);
-//     });
-// var points = svg.selectAll(".point")
-//          .data(pointsData)
-//          .enter()
-//          //.attr("class", "point")44
-//          .append("svg:circle")
-//          .attr("clip-path", "url(#clip)")
-//          .attr("stroke", "black")
-//          .attr("fill", function(d) { return "black" })
-//          .attr("cx", function(d) { return x(d.date) })
-//          .attr("cy", function(d) {  return y(d.delayTime)})
-//          .attr("r", 0.5);
 
 var points = svg.selectAll('.dots')
   .data(vehicles)

@@ -2,7 +2,10 @@
 
 var streamDataAnalizer = function(settings) {
       var cache = {},
-          defaultOptions = {expiredTime : 60000},
+          defaultOptions = {
+              expiredTime : 60000,
+              delayTime : 10
+          },
           isKeyTooOld = function(timestamp, key) {
               var deltaTime = timestamp - key;
               return deltaTime >  defaultOptions.expiredTime;
@@ -25,9 +28,20 @@ var streamDataAnalizer = function(settings) {
 
                return data;
           },
+          getAvgValue = function(data) {
+              var avg = data.reduce(function(prevVal, curVal){
+                return prevVal + curVal;
+              },0)/data.length;
+
+              return avg;
+          },
           getValue =  function(timestamp) {
               var data = getActualData(timestamp);
-              return data.length;
+              if (data.length < 3) {
+                 return defaultOptions.delayTime;
+              } else {
+                  return getAvgValue(data)
+              };
           };
       return {
           add: function(timestamp, value) {
@@ -37,6 +51,22 @@ var streamDataAnalizer = function(settings) {
           get: function(timestamp) {
               !timestamp && (timestamp = Date.now());
               return getValue(timestamp);
+          },
+          getMed: function(timestamp) {
+              !timestamp && (timestamp = Date.now());
+              var data = getActualData(timestamp),
+                  avgVal =  getAvgValue(data);
+
+                  data = data.filter(function(value) {
+                      return  2* avgVal > value;
+                  });
+
+              if (data.length < 3) {
+                 return defaultOptions.delayTime;
+              } else {
+                data.sort(function(a,b) {return a-b});
+                return data[(data.length >> 1) +1] * 1.5;
+              }
           }
       }
 };

@@ -46,7 +46,8 @@ var streamDataAnalizer = function(settings) {
               };
           };
       return {
-          add: function(timestamp, value) {
+          add: function(value, timestamp) {
+             !timestamp && (timestamp = Date.now());
              !cache[timestamp] && (cache[timestamp] = []);
              cache[timestamp].push(value);
           },

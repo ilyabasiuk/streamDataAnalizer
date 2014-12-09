@@ -40,7 +40,7 @@ var streamDataAnalizer = function(settings) {
           },
           getValue =  function(timestamp) {
               var data = getActualData(timestamp);
-              if (data.length < 3) {
+              if (data.length < options.minCount) {
                   return options.defaultValue;
               } else {
                   return getAvgValue(data)

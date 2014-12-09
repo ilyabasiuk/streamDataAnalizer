@@ -2,7 +2,8 @@ var streamDataAnalizer = function(settings) {
       var cache = {},
           defaultOptions = {
               expiredTime : 60000,
-              defaultValue : 10
+              defaultValue : 10,
+              minCount : 3
           },
           options = Object.keys(defaultOptions).reduce(function(cache, optionName) {
               cache[optionName] = settings[optionName] || defaultOptions[optionName];
@@ -64,7 +65,7 @@ var streamDataAnalizer = function(settings) {
                       return  2* avgVal > value;
                   });
 
-              if (data.length < 3) {
+              if (data.length < options.minCount) {
                  return options.defaultValue;
               } else {
                 data.sort(function(a,b) {return a-b});

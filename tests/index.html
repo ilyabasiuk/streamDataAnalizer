@@ -1,0 +1,52 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>QUnit basic example</title>
+  <link rel="stylesheet" href="//code.jquery.com/qunit/qunit-1.16.0.css">
+</head>
+<body>
+  <div id="qunit"></div>
+  <div id="qunit-fixture"></div>
+  <script src="//code.jquery.com/qunit/qunit-1.16.0.js"></script>
+  <script src="../streamDataAnalyzer.js"></script>
+  <script>
+    var expiredTime = 1000,
+        defaultValue = 10,
+        minCount = 2;
+    QUnit.test( "a basic test example", function( assert ) {
+       var analyzer = streamDataAnalizer({expiredTime: expiredTime, defaultValue: defaultValue, minCount: minCount}),
+           i;
+
+        for(i=minCount;i--;) {
+            assert.equal(analyzer.get(), defaultValue, "got default value until we have not enaough data");
+            analyzer.add(defaultValue*2);
+        }
+
+        assert.equal(analyzer.get(), (defaultValue*2), "when we have enough data we get the default value");
+
+        analyzer.add(defaultValue);
+
+        assert.ok(analyzer.get() > defaultValue, "should be bigger than default");
+        assert.ok(analyzer.get() < (defaultValue*2), "but less then default x 2");
+    });
+
+    QUnit.test( "expired functionality", function( assert ) {
+       var analyzer = streamDataAnalizer({expiredTime: expiredTime, defaultValue: defaultValue, minCount: minCount}),
+           defaultTimestamp = Date.now(),
+           biggerThenDefault = defaultValue * 2;
+
+        analyzer.add(biggerThenDefault,defaultTimestamp + 20);
+        analyzer.add(biggerThenDefault,defaultTimestamp + 40);
+
+        assert.notEqual(analyzer.get(), defaultValue, "analizer have enaught data to analize");
+
+        analyzer.add(biggerThenDefault*2,defaultTimestamp + 60);
+        analyzer.add(biggerThenDefault*2,defaultTimestamp + 80);
+
+        assert.ok(analyzer.get(defaultTimestamp + 90) > biggerThenDefault, "all value are actual");
+        assert.equal(analyzer.get(defaultTimestamp + 50 + expiredTime), biggerThenDefault*2, "only last 2 values actual");
+        assert.ok(analyzer.get(defaultTimestamp + 90 + expiredTime), defaultValue, "no actual values we g0t the default vaue");
+    });
+  </script>
+</body>
+</html>

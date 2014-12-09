@@ -15,7 +15,7 @@ var streamDataAnalizer = function(settings) {
           },
           getActualData = function(timestamp) {
               var isActual =  function(key) {
-                    return timestamp -key <= options.expiredTime;
+                    return timestamp - key <= options.expiredTime;
               }, data;
               data =  Object.keys(cache).filter(function(key) {
                     if (isKeyTooOld(timestamp, key)) {

@@ -1,5 +1,30 @@
 var streamDataAnalizer = function(settings) {
-      var cache = {},
+      var activeCache = function() {
+              var cache = {},
+                  isKeyTooOld = function(timestamp, key) {
+                      var deltaTime = timestamp - key;
+                      if (deltaTime >  options.expiredTime){
+                          return true;
+                      } else {
+                          return false;
+                      }
+                  };
+              return {
+                  add: function(value, timestamp) {
+                      !cache[timestamp] && (cache[timestamp] = []);
+                      cache[timestamp].push(value);
+                  },
+                  getActual: function(timestamp) {
+                      var isActual = function(key) {
+                          return !isKeyTooOld(timestamp, key);
+                      };
+
+                      return Object.keys(cache).filter(isActual).reduce(function(actualData, currentKey) {
+                            return  actualData.concat(cache[currentKey]);
+                      },[]);
+                  }
+              }
+          }(),
           defaultOptions = {
               expiredTime : 60000,
               defaultValue : 10,
@@ -9,28 +34,6 @@ var streamDataAnalizer = function(settings) {
               cache[optionName] = settings[optionName] || defaultOptions[optionName];
               return cache;
           }, {}),
-          isKeyTooOld = function(timestamp, key) {
-              var deltaTime = timestamp - key;
-              return deltaTime >  options.expiredTime;
-          },
-          getActualData = function(timestamp) {
-              var isActual =  function(key) {
-                    return timestamp - key <= options.expiredTime;
-              }, data;
-              data =  Object.keys(cache).filter(function(key) {
-                    if (isKeyTooOld(timestamp, key)) {
-                        delete cache[key];
-                        return false;
-                    } else {
-                         return true;
-                    }})
-                  .filter(isActual)
-                  .reduce(function(actualData, currentKey) {
-                     return  actualData.concat(cache[currentKey]);
-                  },[]);
-
-               return data;
-          },
           getAvgValue = function(data) {
               var avg = data.reduce(function(prevVal, curVal){
                 return prevVal + curVal;
@@ -39,7 +42,7 @@ var streamDataAnalizer = function(settings) {
               return avg;
           },
           getValue =  function(timestamp) {
-              var data = getActualData(timestamp);
+              var data = activeCache.getActual(timestamp);
               if (data.length < options.minCount) {
                   return options.defaultValue;
               } else {
@@ -49,8 +52,7 @@ var streamDataAnalizer = function(settings) {
       return {
           add: function(value, timestamp) {
              !timestamp && (timestamp = Date.now());
-             !cache[timestamp] && (cache[timestamp] = []);
-             cache[timestamp].push(value);
+             activeCache.add(value, timestamp);
           },
           get: function(timestamp) {
               !timestamp && (timestamp = Date.now());

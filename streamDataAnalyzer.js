@@ -40,7 +40,7 @@ var streamDataAnalizer = function(settings) {
           },
           getValue =  function(timestamp) {
               var data = activeCache.getActual(timestamp);
-              (data.length < options.minCount)? options.defaultValue: getAvgValue(data);
+              return (data.length < options.minCount)? options.defaultValue: getAvgValue(data);
           };
       return {
           add: function(value, timestamp) {

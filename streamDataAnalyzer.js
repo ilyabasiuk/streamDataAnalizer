@@ -1,9 +1,18 @@
 var streamDataAnalizer = function(settings) {
-      var activeCache = function() {
+      var defaultOptions = {
+            expiredTime : 60000,
+            defaultValue : 10,
+            minCount : 3
+          },
+          options = Object.keys(defaultOptions).reduce(function(cache, optionName) {
+              cache[optionName] = settings[optionName] || defaultOptions[optionName];
+              return cache;
+          }, {}),
+          activeCache = function() {
               var cache = {},
                   isKeyTooOld = function(timestamp, key) {
-                      var deltaTime = timestamp - key;
-                      if (deltaTime >  options.expiredTime){
+                      if (timestamp - key > options.expiredTime){
+                          delete cache[key];
                           return true;
                       } else {
                           return false;
@@ -15,39 +24,23 @@ var streamDataAnalizer = function(settings) {
                       cache[timestamp].push(value);
                   },
                   getActual: function(timestamp) {
-                      var isActual = function(key) {
-                          return !isKeyTooOld(timestamp, key);
-                      };
-
-                      return Object.keys(cache).filter(isActual).reduce(function(actualData, currentKey) {
-                            return  actualData.concat(cache[currentKey]);
-                      },[]);
+                      return Object.keys(cache)
+                             .filter(function(key) {
+                                       return !isKeyTooOld(timestamp, key);
+                             }).reduce(function(actualData, currentKey) {
+                                       return  actualData.concat(cache[currentKey]);
+                             },[]);
                   }
               }
           }(),
-          defaultOptions = {
-              expiredTime : 60000,
-              defaultValue : 10,
-              minCount : 3
-          },
-          options = Object.keys(defaultOptions).reduce(function(cache, optionName) {
-              cache[optionName] = settings[optionName] || defaultOptions[optionName];
-              return cache;
-          }, {}),
           getAvgValue = function(data) {
-              var avg = data.reduce(function(prevVal, curVal){
+              return data.reduce(function(prevVal, curVal){
                 return prevVal + curVal;
               },0)/data.length;
-
-              return avg;
           },
           getValue =  function(timestamp) {
               var data = activeCache.getActual(timestamp);
-              if (data.length < options.minCount) {
-                  return options.defaultValue;
-              } else {
-                  return getAvgValue(data)
-              };
+              (data.length < options.minCount)? options.defaultValue: getAvgValue(data);
           };
       return {
           add: function(value, timestamp) {

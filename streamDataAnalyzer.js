@@ -1,8 +1,8 @@
 var streamDataAnalizer = function(settings) {
       var defaultOptions = {
-            expiredTime : 60000,
-            defaultValue : 10,
-            minCount : 3
+            expiredTime: 60000,
+            defaultValue: 10,
+            minCount: 3
           },
           options = Object.keys(defaultOptions).reduce(function(cache, optionName) {
               cache[optionName] = settings[optionName] || defaultOptions[optionName];
